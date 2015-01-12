@@ -1,0 +1,35 @@
+{
+  "name": "node-tdd-boilerplate",
+  "description": "A handy start point for TDD in node.js",
+  "version": "0.0.0",
+  "homepage": "https://github.com/digitalgravy/node-tdd-boilerplate",
+  "bugs": "https://github.com/digitalgravy/node-tdd-boilerplate/issues",
+  "license": "MIT",
+  "main": "lib/node-tdd-boilerplate.js",
+  "author": {
+    "name": "Stuart Elmore",
+    "email": "hello@digitalgravy.co.uk"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/digitalgravy/node-tdd-boilerplate"
+  },
+  "keywords":[],
+  "dependencies": {
+    "lodash": "2.4.1",
+    "q": "1.1.2",
+    "debug": "2.1.1"
+  },
+  "devDependencies": {
+    "gulp": "^3.8.8",
+    "gulp-jshint": "^1.8.4",
+    "gulp-jasmine": "^1.0.0",
+    "gulp-istanbul": "^0.3.0",
+    "jshint-stylish": "^0.4.0",
+    "gulp-load-plugins": "^0.6.0",
+    "gulp-plumber": "^0.6.5"
+  },
+  "scripts": {
+    "test": "gulp test"
+  }
+}
