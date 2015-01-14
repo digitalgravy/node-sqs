@@ -1,4 +1,4 @@
-# node-tdd-boilerplate 
+# node-sqs 
 [![NPM version][npm-image]][npm-url] [![Build Status][travis-image]][travis-url] [![Dependency Status][daviddm-url]][daviddm-image]
 
 A handy start point for TDD in node.js
@@ -21,9 +21,9 @@ Copyright (c) 2015 Stuart Elmore. Licensed under the MIT license.
 
 
 
-[npm-url]: https://npmjs.org/package/node-tdd-boilerplate
-[npm-image]: https://badge.fury.io/js/node-tdd-boilerplate.svg
-[travis-url]: https://travis-ci.org/digitalgravy/node-tdd-boilerplate
-[travis-image]: https://travis-ci.org/digitalgravy/node-tdd-boilerplate.svg?branch=master
-[daviddm-url]: https://david-dm.org/digitalgravy/node-tdd-boilerplate.svg?theme=shields.io
-[daviddm-image]: https://david-dm.org/digitalgravy/node-tdd-boilerplate
+[npm-url]: https://npmjs.org/package/node-sqs
+[npm-image]: https://badge.fury.io/js/node-sqs.svg
+[travis-url]: https://travis-ci.org/digitalgravy/node-sqs
+[travis-image]: https://travis-ci.org/digitalgravy/node-sqs.svg?branch=master
+[daviddm-url]: https://david-dm.org/digitalgravy/node-sqs.svg?theme=shields.io
+[daviddm-image]: https://david-dm.org/digitalgravy/node-sqs

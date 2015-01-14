@@ -1,24 +1,26 @@
 {
-  "name": "node-tdd-boilerplate",
+  "name": "node-sqs",
   "description": "A handy start point for TDD in node.js",
   "version": "0.0.0",
-  "homepage": "https://github.com/digitalgravy/node-tdd-boilerplate",
-  "bugs": "https://github.com/digitalgravy/node-tdd-boilerplate/issues",
+  "homepage": "https://github.com/digitalgravy/node-sqs",
+  "bugs": "https://github.com/digitalgravy/node-sqs/issues",
   "license": "MIT",
-  "main": "lib/node-tdd-boilerplate.js",
+  "main": "lib/node-sqs.js",
   "author": {
     "name": "Stuart Elmore",
     "email": "hello@digitalgravy.co.uk"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/digitalgravy/node-tdd-boilerplate"
+    "url": "https://github.com/digitalgravy/node-sqs"
   },
-  "keywords":[],
+  "keywords": [],
   "dependencies": {
+    "aws-sdk": "^2.1.5",
+    "debug": "2.1.1",
+    "gulp-nodemon": "^1.0.5",
     "lodash": "2.4.1",
-    "q": "1.1.2",
-    "debug": "2.1.1"
+    "q": "1.1.2"
   },
   "devDependencies": {
     "gulp": "^3.8.8",
