@@ -6,7 +6,6 @@ node_js:
 before_install:
   - npm install -g npm@2
   - npm install
-  - bower install
 
 script:
   - gulp test
