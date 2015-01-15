@@ -596,7 +596,7 @@ describe('nodeSQS', function () {
 						.done(done)
 			});
 
-			it('should resolve the promise if the argument is a valid SQSMessage')
+			it('should resolve the promise if the argument is a valid SQSMessage');
 
 		});
 
