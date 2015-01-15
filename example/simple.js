@@ -8,17 +8,19 @@
 
 'use strict';
 
-var nodeSQS = require('../');
+var nodeSQS = require('../'),
+		credentials = require('../credentials/credentials');
 
 var sqsPublisher = new nodeSQS.publisher();
 
-sqsPublisher.init('AKIAJXFEWVBTYPUDYXIQ', '2z0Bp9Jipv7D8GKm0l8ZuPq/GVOP06vFGZLq3U1i', 'eu-west-1');
-
+sqsPublisher.init(credentials.AccessKeyId, credentials.SecretAccessKey, Region);
+/*
 sqsPublisher
-	.send({message: 'Hello Craig & Abu!'}, '/679761528887/SPIKE-621').
+	.send({message: 'World!'}, '/queue/url').
 	then(function(data){
 		console.log('Success:', data);
 	})
 	.done(function(err){
 		console.log('Error:', err)
 	});
+*/

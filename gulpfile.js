@@ -54,7 +54,7 @@ gulp.task('watch', ['test'], function () {
   gulp.watch(paths.watch, ['test']);
 });
 
-gulp.task('test', ['lint', 'unitTest']);
+gulp.task('test', [/*'lint', */'unitTest']);
 
 gulp.task('release', ['bump']);
 
