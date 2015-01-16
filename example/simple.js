@@ -13,7 +13,7 @@ var nodeSQS = require('../'),
 
 var sqsPublisher = new nodeSQS.publisher();
 
-sqsPublisher.init(credentials.AccessKeyId, credentials.SecretAccessKey, Region);
+sqsPublisher.init(credentials.AccessKeyId, credentials.SecretAccessKey, credentials.Region);
 /*
 sqsPublisher
 	.send({message: 'World!'}, '/queue/url').

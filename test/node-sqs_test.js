@@ -116,7 +116,7 @@ describe('nodeSQS', function () {
 					.then(function(data){
 						})
 					.fail(function(err){
-							expect(err).not.toBe(undefined);
+							expect(err).not.toBeUndefined();
 						})
 					.done(done);
 			});
@@ -129,13 +129,13 @@ describe('nodeSQS', function () {
 							expect(this).not.toHaveBeenCalled();
 							done();
 						}, function(err){
-							expect(err).not.toBe(undefined);
+							expect(err).not.toBeUndefined();
 							done();
 						})
 			});
 
 			it('should return a promise', function(){
-				expect(typeof sqsPublisher.send().then).not.toBe(undefined);
+				expect(typeof sqsPublisher.send().then).not.toBeUndefined();
 			});
 
 			it('should convert object to string before sending to SQS', function(){
@@ -164,7 +164,7 @@ describe('nodeSQS', function () {
 				spyOn(sqsPublisher.sqs, 'sendMessage').and.returnValue('Error!');
 				sqsPublisher.send().then(function(data){
 				}, function(err){
-					expect(err).not.toBe(undefined);
+					expect(err).not.toBeUndefined();
 				}).done(done);
 			});
 
@@ -258,17 +258,17 @@ describe('nodeSQS', function () {
 			});
 
 			it('should return a promise', function(){
-				expect(typeof sqsSubscriber.checkOnce().then).not.toBe(undefined);
+				expect(typeof sqsSubscriber.checkOnce().then).not.toBeUndefined();
 			});
 
 			it('should reject promise if SQS has not yet been initialised', function(done){
 				sqsSubscriber
 					.checkOnce()
 						.then(function(data){
-							expect(this).not.toHaveBeenCalled();
+							expect(data).toBeUndefined();
 							done();
 						}, function(err){
-							expect(err).not.toBe(undefined);
+							expect(err).not.toBeUndefined();
 							expect(err).toBe('Error: SQS is not initialised');
 							done();
 						});
@@ -279,10 +279,10 @@ describe('nodeSQS', function () {
 				sqsSubscriber
 					.checkOnce()
 						.then(function(data){
-							expect(this).not.toHaveBeenCalled();
+							expect(data).toBeUndefined();
 							done();
 						}, function(err){
-							expect(err).not.toBe(undefined);
+							expect(err).not.toBeUndefined();
 							expect(err).toBe('Error: no SQS Queue supplied');
 							done();
 						});
@@ -300,6 +300,7 @@ describe('nodeSQS', function () {
 
 				sqsSubscriber
 					.checkOnce('test/test')
+						.then()
 						.done(done);
 			});
 
@@ -316,7 +317,7 @@ describe('nodeSQS', function () {
 				sqsSubscriber
 					.checkOnce('test/test')
 						.then(function(messages){
-							expect(this).not.toHaveBeenCalled();
+							expect(messages).toBeUndefined();
 							done();
 						}, function(err){
 							expect(err).toBe('Error: no messages');
@@ -341,7 +342,7 @@ describe('nodeSQS', function () {
 							expect(messages[0] instanceof nodeSQS.message).toBe(true);
 							done();
 						}, function(err){
-							expect(this).not.toHaveBeenCalled();
+							expect(err).toBeUndefined();
 							done();
 						});
 			});
@@ -415,13 +416,21 @@ describe('nodeSQS', function () {
 
 		describe('watch()', function(){
 
-			var credentials, region;
+			var credentials, region, checkOnce_mock;
 
 			beforeEach(function(){
 				sqsSubscriber = new nodeSQS.subscriber();
 				sqsSubscriber.AWS = new MockAWS();
 				credentials = {accessKeyId: 'MY_ACCESS_KEY_ID', secretAccessKey: 'MY_SECRET_ACCESS_KEY'};
 				region = {region: 'MY_REGION'};
+				sqsSubscriber.init(credentials.accessKeyId, credentials.secretAccessKey, region.region);
+				checkOnce_mock = function(){
+					var deferred = Q.defer();
+					setTimeout(function(){
+						deferred.resolve([true]);
+					}, 100);
+					return deferred.promise;
+				};
 			});
 
 			afterEach(function(){
@@ -429,139 +438,166 @@ describe('nodeSQS', function () {
 			});
 
 			it('should return a promise', function(){
-				expect(sqsSubscriber.watch().then).not.toBe(undefined);
+				expect(sqsSubscriber.watch().then).toBeDefined();
 			});
 
 			it('should create an object relating to itself when initialised', function(done){
+				sqsSubscriber.checkOnce = checkOnce_mock;
 				sqsSubscriber
 					.watch('test/test')
 						.then(function(){
-							expect(sqsSubscriber.watchers.test.length).not.toBe(undefined);
-						})
-						.done(done);
+							expect(sqsSubscriber.watchers['https://sqs.MY_REGION.amazonaws.com/test/test']).not.toBeUndefined();
+							done();
+						});
+				setTimeout(function(){
+					sqsSubscriber.watchers['https://sqs.MY_REGION.amazonaws.com/test/test'].active = false;
+				}, 500)
 			});
 
 			it('should only resolve the promise when stopWatching has occured', function(done){
 				var testSpy = jasmine.createSpy('test');
+				sqsSubscriber.checkOnce = checkOnce_mock;
 				sqsSubscriber
-					.watch()
+					.watch('test/test')
 						.then(function(){
 							expect(testSpy).toHaveBeenCalled();
-						}, function(){
-							expect(this).not.toHaveBeenCalled();
+						}, function(err){
+							expect(err).toBeUndefined();
 						}, function(){
 							testSpy();
 						})
 						.done(done);
-				var checkOnce_mock = function(){
-					var deferred = Q.defer();
-					deferred.resolve([true]);
-					return deferred.promise;
-				};
-				sqsSubscriber.checkOnce = checkOnce_mock;
 				setTimeout(function(){
-					// remove watcher somehow
-				}, 1000)
+					sqsSubscriber.watchers['https://sqs.MY_REGION.amazonaws.com/test/test'].active = false;
+				}, 500)
 			});
 
-			it('should respond to switching off the watch command', function(done){
+			it('should return a promise notify when new data is received', function(done){
+				var testSpy = jasmine.createSpy('test');
+				sqsSubscriber.checkOnce = checkOnce_mock;
 				sqsSubscriber
 					.watch('test/test')
-						.then(function(){
-							expect(this).toHaveBeenCalled();
+						.then(function(data){
+							if(expect) expect(testSpy).toHaveBeenCalled();
 						}, function(err){
-							expect(err).toBe(undefined);
+						}, function(data){
+							testSpy();
 						})
 						.done(done);
-			});
-
-			it('should return a promise update when new data is received', function(done){
-				var testSpy = jasmine.createSpy('test');
-				sqsSubscriber
-					.watch()
-						.then(function(){
-							expect(this).not.toHaveBeenCalled();
-						}, function(data){
-							expect(this).not.toHaveBeenCalled();
-						}, function(data){
-							expect(data).not.toBe(undefined);
-						})
-						.done(done);
-				var checkOnce_mock = function(){
-					var deferred = Q.defer();
-					deferred.resolve([true]);
-					return deferred.promise;
-				};
-				sqsSubscriber.checkOnce = checkOnce_mock;
 				setTimeout(function(){
-					// remove watcher somehow
-				}, 1000)
+					sqsSubscriber.watchers['https://sqs.MY_REGION.amazonaws.com/test/test'].active = false;
+				}, 500)
 			});
 
 			it('should return a promise error if no queue is passed', function(done){
 				sqsSubscriber
 					.watch()
-						.then(function(){
-							expect(this).not.toHaveBeenCalled();
+						.then(function(data){
+							expect(data).toBeUndefined();
 						}, function(err){
 							expect(err).toBe('Error: no queue supplied');
 						})
 						.done(done);
 			});
 
-			it('should correct queue if a partial is provided')
-
-			it('should only return a promise update when a new message is available')
-
-			it('should override the default settings if an array of options are supplied in the parameters')
-
-			it('should override the default settings if an object of options are supplied')
-
-			it('should always return an array of SQSMessages when it returns messages')
-
 		});
 
 		describe('stopWatching()', function(){
 
-			var credentials, region;
+			var credentials, region, checkOnce_mock;
 
 			beforeEach(function(){
 				sqsSubscriber = new nodeSQS.subscriber();
 				sqsSubscriber.AWS = new MockAWS();
 				credentials = {accessKeyId: 'MY_ACCESS_KEY_ID', secretAccessKey: 'MY_SECRET_ACCESS_KEY'};
 				region = {region: 'MY_REGION'};
+				sqsSubscriber.init(credentials.accessKeyId, credentials.secretAccessKey, region.region);
+				checkOnce_mock = function(){
+					var deferred = Q.defer();
+					setTimeout(function(){
+						deferred.resolve([true]);
+					}, 100);
+					return deferred.promise;
+				};
+				sqsSubscriber.checkOnce = checkOnce_mock;
 				sqsSubscriber
 					.watch('test/test')
 			});
 
 			afterEach(function(){
+				try{
+					sqsSubscriber.watchers['https://sqs.MY_REGION.amazonaws.com/test/test'].active = null;
+				}catch(e){}
+				try{
+					sqsSubscriber.watchers['https://sqs.MY_REGION.amazonaws.com/test/test2'].active = null;
+				}catch(e){}
+				try{
+					sqsSubscriber.watchers['https://sqs.MY_REGION.amazonaws.com/test/test3'].active = null;
+				}catch(e){}
 				sqsSubscriber = null;
 			});
 
 
-			it('should return a promise', function(){
-				expect(typeof sqsSubscriber.stopWatching().then).not.toBe(undefined);
+			it('should return a promise', function(done){
+				expect(typeof sqsSubscriber.stopWatching().then).toBeDefined();
+				done();
 			});
 
-			it('should trigger stop watching on all watchers if no parameters are provided')
+			it('should accept a single watcher and remove it', function(done){
+				sqsSubscriber
+					.stopWatching('test/test')
+						.then(function(msg){
+							expect(sqsSubscriber.watchers['https://sqs.MY_REGION.amazonaws.com/test/test']).toBeUndefined();
+						}, function(err){
+							expect(err).toBeUndefined();
+						})
+						.done(done);
+			})
 
-			it('should only remove watchers that are passed to it')
+			it('should only remove watchers that are passed to it', function(done){
+				sqsSubscriber
+					.watch('test/test2');
+				sqsSubscriber
+					.stopWatching('test/test')
+						.then(function(msg){
+							expect(sqsSubscriber.watchers['https://sqs.MY_REGION.amazonaws.com/test/test']).toBeUndefined();
+							expect(sqsSubscriber.watchers['https://sqs.MY_REGION.amazonaws.com/test/test2']).toBeDefined();
+						}, function(err){
+							expect(err).toBeUndefined();
+						})
+						.done(done);
+			});
 
-			it('should accept a single watcher and remove it')
-
-			it('should accept an array of watchers and remove them')
+			it('should accept an array of watchers and remove them', function(done){
+				sqsSubscriber
+					.watch('test/test2');
+				sqsSubscriber
+					.watch('test/test3');
+				sqsSubscriber
+					.stopWatching(['test/test', 'test/test2', 'test/test3'])
+						.then(function(msg){
+							expect(sqsSubscriber.watchers['https://sqs.MY_REGION.amazonaws.com/test/test']).toBeUndefined();
+							expect(sqsSubscriber.watchers['https://sqs.MY_REGION.amazonaws.com/test/test2']).toBeUndefined();
+							expect(sqsSubscriber.watchers['https://sqs.MY_REGION.amazonaws.com/test/test3']).toBeUndefined();
+						}, function(err){
+							expect(err).toBeUndefined();
+						})
+						.done(done);
+			});
 
 		});
 		
 		describe('remove()', function(){
 			
-			var credentials, region;
+			var credentials, region, testMessage;
 
 			beforeEach(function(){
 				sqsSubscriber = new nodeSQS.subscriber();
 				sqsSubscriber.AWS = new MockAWS();
 				credentials = {accessKeyId: 'MY_ACCESS_KEY_ID', secretAccessKey: 'MY_SECRET_ACCESS_KEY'};
 				region = {region: 'MY_REGION'};
+				testMessage = new nodeSQS.message('{"test":true}', 'test/test', {MessageBody: '{"test":true}', ReceiptHandle: 'blahblahblah'});
+				sqsSubscriber.init(credentials.accessKeyId, credentials.secretAccessKey, region.region);
 			});
 
 			afterEach(function(){
@@ -569,10 +605,20 @@ describe('nodeSQS', function () {
 			});
 
 			it('should return a promise', function(){
-				expect(typeof sqsSubscriber.remove().then).not.toBe(undefined);
+				expect(typeof sqsSubscriber.remove().then).not.toBeUndefined();
 			});
 
-			it('should call the AWS SQS deleteMessage function');
+			it('should call the AWS SQS deleteMessage function', function(done){
+				var deleteMessage_mock = function(opts, cb){
+					expect(opts).toEqual({QueueUrl: testMessage.queueFrom, ReceiptHandle: testMessage._MESSAGE.ReceiptHandle});
+					expect(cb).toEqual(jasmine.any(Function));
+					cb.call(this, undefined, {});
+				};
+				sqsSubscriber.sqs.deleteMessage = deleteMessage_mock;
+				sqsSubscriber
+					.remove(testMessage)
+						.done(done);
+			});
 
 			it('should reject the promise if no arguments are supplied', function(done){
 				sqsSubscriber
@@ -596,7 +642,20 @@ describe('nodeSQS', function () {
 						.done(done)
 			});
 
-			it('should resolve the promise if the argument is a valid SQSMessage');
+			it('should resolve the promise if the argument is a valid SQSMessage', function(done){
+				var deleteMessage_mock = function(opts, cb){
+					expect(opts).toEqual({QueueUrl: testMessage.queueFrom, ReceiptHandle: testMessage._MESSAGE.ReceiptHandle});
+					expect(cb).toEqual(jasmine.any(Function));
+					cb.call(this, undefined, {});
+				};
+				sqsSubscriber.sqs.deleteMessage = deleteMessage_mock;
+				sqsSubscriber
+					.remove(testMessage)
+						.then(function(data){
+							expect(data).not.toBeUndefined();
+						})
+						.done(done);
+			});
 
 		});
 

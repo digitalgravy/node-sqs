@@ -39,7 +39,7 @@ gulp.task('lint', function () {
 gulp.task('unitTest', function () {
   gulp.src(paths.tests, {cwd: __dirname})
     .pipe(plugins.plumber(plumberConf))
-    .pipe(plugins.jasmine({verbose:true}));
+    .pipe(plugins.jasmine({verbose:true, includeStackTrace: true}));
 });
 
 gulp.task('bump', ['test'], function () {
